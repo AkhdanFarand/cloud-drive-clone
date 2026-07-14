@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cloud Drive</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="bi bi-cloud-fill"></i>
+            </div>
+
+            <div>
+                <h1>Cloud Drive</h1>
+                <small>Personal Storage</small>
+            </div>
+        </div>
+
+        <button
+            class="btn-new"
+            data-bs-toggle="modal"
+            data-bs-target="#newFolderModal"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Folder Baru
+        </button>
+
+        <label for="fileInput" class="btn-upload">
+            <i class="bi bi-cloud-arrow-up"></i>
+            Upload File
+        </label>
+
+        <input type="file" id="fileInput" hidden multiple>
+
+        <nav class="sidebar-menu">
+            <button class="menu-item active">
+                <i class="bi bi-house-door"></i>
+                Drive Saya
+            </button>
+
+            <button class="menu-item">
+                <i class="bi bi-clock-history"></i>
+                Terbaru
+            </button>
+
+            <button class="menu-item">
+                <i class="bi bi-star"></i>
+                Berbintang
+            </button>
+
+            <button class="menu-item">
+                <i class="bi bi-trash"></i>
+                Sampah
+            </button>
+        </nav>
+
+        <div class="storage-card">
+            <div class="storage-title">
+                <span>Penyimpanan</span>
+                <span>25%</span>
+            </div>
+
+            <div class="progress">
+                <div
+                    class="progress-bar"
+                    role="progressbar"
+                    style="width: 25%"
+                ></div>
+            </div>
+
+            <small>2.5 GB dari 10 GB digunakan</small>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <header class="topbar">
+            <button class="mobile-menu-button" id="mobileMenuButton">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <div class="search-wrapper">
+                <i class="bi bi-search"></i>
+
+                <input
+                    type="search"
+                    id="searchInput"
+                    placeholder="Cari file atau folder..."
+                >
+            </div>
+
+            <div class="profile">
+                <div class="profile-avatar">CF</div>
+
+                <div class="profile-info">
+                    <strong>Cloud User</strong>
+                    <small>user@example.com</small>
+                </div>
+            </div>
+        </header>
+
+        <section class="content-section">
+
+            <!-- Breadcrumb -->
+            <div class="breadcrumb-wrapper">
+                <button class="breadcrumb-home" id="homeButton">
+                    <i class="bi bi-house-door"></i>
+                    Drive Saya
+                </button>
+
+                <div id="breadcrumbContainer"></div>
+            </div>
+
+            <!-- Title and Actions -->
+            <div class="content-heading">
+                <div>
+                    <h2 id="folderTitle">Drive Saya</h2>
+                    <p id="itemCounter">0 item</p>
+                </div>
+
+                <div class="view-buttons">
+                    <button
+                        class="view-button active"
+                        id="gridViewButton"
+                        title="Tampilan grid"
+                    >
+                        <i class="bi bi-grid"></i>
+                    </button>
+
+                    <button
+                        class="view-button"
+                        id="listViewButton"
+                        title="Tampilan daftar"
+                    >
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div
+                class="upload-progress-container d-none"
+                id="uploadProgressContainer"
+            >
+                <div class="upload-progress-header">
+                    <span id="uploadFileName">Mengupload file...</span>
+                    <span id="uploadPercentage">0%</span>
+                </div>
+
+                <div class="progress">
+                    <div
+                        class="progress-bar"
+                        id="uploadProgressBar"
+                        style="width: 0%"
+                    ></div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state d-none" id="emptyState">
+                <div class="empty-icon">
+                    <i class="bi bi-folder2-open"></i>
+                </div>
+
+                <h3>Folder masih kosong</h3>
+
+                <p>
+                    Upload file atau buat folder baru untuk mulai menggunakan
+                    penyimpanan.
+                </p>
+            </div>
+
+            <!-- File Container -->
+            <div class="file-grid" id="fileContainer"></div>
+
+        </section>
+    </main>
+</div>
+
+<!-- Modal Folder Baru -->
+<div
+    class="modal fade"
+    id="newFolderModal"
+    tabindex="-1"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-folder-plus"></i>
+                    Folder Baru
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
+            </div>
+
+            <form id="newFolderForm">
+                <div class="modal-body">
+                    <label for="folderName" class="form-label">
+                        Nama folder
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="folderName"
+                        placeholder="Contoh: Dokumen Kuliah"
+                        maxlength="100"
+                        required
+                    >
+
+                    <div class="invalid-feedback">
+                        Nama folder wajib diisi.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal"
+                    >
+                        Batal
+                    </button>
+
+                    <button type="submit" class="btn btn-primary">
+                        Buat Folder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rename -->
+<div
+    class="modal fade"
+    id="renameModal"
+    tabindex="-1"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square"></i>
+                    Ubah Nama
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
+            </div>
+
+            <form id="renameForm">
+                <div class="modal-body">
+                    <label for="renameInput" class="form-label">
+                        Nama baru
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="renameInput"
+                        required
+                    >
+                </div>
+
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal"
+                    >
+                        Batal
+                    </button>
+
+                    <button type="submit" class="btn btn-primary">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div
+        id="notificationToast"
+        class="toast"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
+        <div class="toast-header">
+            <i class="bi bi-cloud-check me-2 text-primary"></i>
+            <strong class="me-auto">Cloud Drive</strong>
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="toast"
+            ></button>
+        </div>
+
+        <div class="toast-body" id="toastMessage">
+            Operasi berhasil.
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>
