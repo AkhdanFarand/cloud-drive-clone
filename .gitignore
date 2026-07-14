@@ -1,0 +1,19 @@
+# Node Modules
+node_modules/
+
+# Environment
+.env
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Docker
+*.pid
