@@ -1,26 +1,49 @@
-# Cloud Drive Clone
+Cloud Drive Clone
 
-## Requirements
+Deskripsi
 
-- Docker Desktop
+Aplikasi cloud storage sederhana menggunakan:
+
+- Docker
 - Docker Compose
+- Express.js
+- MySQL
+- MinIO
 
-## Installation
+--------------------------------
+
+Struktur Project
+
+backend/
+frontend/
+docs/
+
+docker-compose.yml
+
+--------------------------------
+
+Cara Menjalankan
 
 docker compose up -d
 
-## Services
+--------------------------------
 
-MinIO
-http://localhost:9001
+Service
+
+MinIO API
+
+localhost:9000
+
+Console
+
+localhost:9001
 
 MySQL
+
 localhost:3306
 
-## Login MinIO
+--------------------------------
 
-Username:
-minioadmin
+Kontributor
 
-Password:
-*******
+Nama anggota kelompok
