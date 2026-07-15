@@ -19,7 +19,6 @@ services:
 
     restart: unless-stopped
 
-
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -36,8 +35,13 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot123"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
+    restart: unless-stopped
 
   backend:
     build:
@@ -52,12 +56,13 @@ services:
       - ./backend/.env
 
     depends_on:
-      - mysql
-      - minio
+      mysql:
+        condition: service_healthy
+      minio:
+        condition: service_started
 
     restart: unless-stopped
 
-
 volumes:
-  minio_data:
   mysql_data:
+  minio_data:
