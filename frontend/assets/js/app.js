@@ -1,3 +1,12 @@
+console.log("APP JS BERJALAN");
+const API_URL = "http://localhost:3000/api";
+const userName = document.getElementById("userName");
+const token = localStorage.getItem("token");
+const logoutButton = document.getElementById("logoutButton");
+
+if (!token) {
+    window.location.href = "login.html";
+}
 const fileContainer = document.getElementById("fileContainer");
 const emptyState = document.getElementById("emptyState");
 const itemCounter = document.getElementById("itemCounter");
@@ -21,43 +30,9 @@ const uploadFileName = document.getElementById("uploadFileName");
 
 let selectedItemId = null;
 
-let items = [
-    {
-        id: crypto.randomUUID(),
-        name: "Dokumen Kuliah",
-        type: "folder",
-        size: null,
-        updatedAt: "14 Juli 2026"
-    },
-    {
-        id: crypto.randomUUID(),
-        name: "Foto",
-        type: "folder",
-        size: null,
-        updatedAt: "13 Juli 2026"
-    },
-    {
-        id: crypto.randomUUID(),
-        name: "Proposal UAS.pdf",
-        type: "pdf",
-        size: "2.4 MB",
-        updatedAt: "12 Juli 2026"
-    },
-    {
-        id: crypto.randomUUID(),
-        name: "Diagram Arsitektur.png",
-        type: "image",
-        size: "1.1 MB",
-        updatedAt: "11 Juli 2026"
-    },
-    {
-        id: crypto.randomUUID(),
-        name: "Catatan Project.docx",
-        type: "document",
-        size: "750 KB",
-        updatedAt: "10 Juli 2026"
-    }
-];
+let items = []; 
+
+
 
 function getFileType(fileName) {
     const extension = fileName.split(".").pop()?.toLowerCase();
@@ -188,13 +163,14 @@ function renderItems(keyword = "") {
 }
 
 function attachItemEvents() {
+
+    // Rename
     document.querySelectorAll(".rename-button").forEach((button) => {
         button.addEventListener("click", () => {
+
             selectedItemId = button.dataset.id;
 
-            const item = items.find(
-                (currentItem) => currentItem.id === selectedItemId
-            );
+            const item = items.find(item => item.id == selectedItemId);
 
             renameInput.value = item?.name || "";
 
@@ -204,27 +180,83 @@ function attachItemEvents() {
         });
     });
 
+    // Delete
     document.querySelectorAll(".delete-button").forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async () => {
+
             const itemId = button.dataset.id;
-            const item = items.find((currentItem) => currentItem.id === itemId);
+
+            const item = items.find(item => item.id == itemId);
 
             if (!item) return;
 
-            const isConfirmed = confirm(
-                `Hapus "${item.name}" dari penyimpanan?`
-            );
+            if (!confirm(`Hapus "${item.name}"?`)) return;
 
-            if (!isConfirmed) return;
+            try {
 
-            items = items.filter(
-                (currentItem) => currentItem.id !== itemId
-            );
+                const response = await fetch(`${API_URL}/files/${itemId}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
 
-            renderItems(searchInput.value);
-            showToast(`"${item.name}" berhasil dihapus.`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message);
+                }
+
+                showToast("File berhasil dihapus.");
+
+                await loadFiles();
+
+            } catch (err) {
+
+                alert(err.message);
+
+            }
+
         });
     });
+
+    // Download
+document.querySelectorAll(".download-button").forEach((button) => {
+    button.addEventListener("click", async () => {
+
+        const itemId = button.dataset.id;
+
+        const response = await fetch(
+            `${API_URL}/files/${itemId}/download`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const blob = await response.blob();
+
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+
+        // sementara kosong saja
+        a.download = "";
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        window.URL.revokeObjectURL(url);
+
+    });
+});
+
 }
 
 newFolderForm.addEventListener("submit", (event) => {
@@ -261,53 +293,100 @@ newFolderForm.addEventListener("submit", (event) => {
     showToast(`Folder "${folderName}" berhasil dibuat.`);
 });
 
-renameForm.addEventListener("submit", (event) => {
+renameForm.addEventListener("submit", async (event) => {
+
     event.preventDefault();
 
     const newName = renameInput.value.trim();
 
     if (!newName || !selectedItemId) return;
 
-    const item = items.find(
-        (currentItem) => currentItem.id === selectedItemId
-    );
+    try {
 
-    if (!item) return;
+        const response = await fetch(
+            `${API_URL}/files/${selectedItemId}`,
+            {
 
-    item.name = newName;
+                method: "PATCH",
 
-    bootstrap.Modal
-        .getInstance(document.getElementById("renameModal"))
-        .hide();
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
 
-    renderItems(searchInput.value);
-    showToast("Nama berhasil diperbarui.");
+                body: JSON.stringify({
+                    original_name: newName,
+                }),
 
-    selectedItemId = null;
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message);
+        }
+
+        bootstrap.Modal
+            .getInstance(document.getElementById("renameModal"))
+            .hide();
+
+        selectedItemId = null;
+
+        showToast("Nama file berhasil diubah.");
+
+        await loadFiles();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert(err.message);
+
+    }
+
 });
 
 fileInput.addEventListener("change", async () => {
+
     const selectedFiles = Array.from(fileInput.files);
 
     for (const file of selectedFiles) {
-        await simulateUpload(file);
 
-        items.unshift({
-            id: crypto.randomUUID(),
-            name: file.name,
-            type: getFileType(file.name),
-            size: formatFileSize(file.size),
-            updatedAt: new Date().toLocaleDateString("id-ID", {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            })
-        });
+        const formData = new FormData();
 
-        renderItems(searchInput.value);
+        formData.append("file", file);
+
+        try {
+
+            await simulateUpload(file);
+
+            const response = await fetch(`${API_URL}/files/upload`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message);
+            }
+
+        } catch (err) {
+
+            alert(err.message);
+
+        }
+
     }
 
     fileInput.value = "";
+
+    await loadFiles();
+
 });
 
 function simulateUpload(file) {
@@ -394,4 +473,114 @@ document.addEventListener("hidden.bs.dropdown", (event) => {
         fileCard.classList.remove("menu-open");
     }
 });
-renderItems();
+async function loadFiles() {
+
+    console.log("LOAD FILES");
+
+    try {
+
+        const response = await fetch(`${API_URL}/files`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        console.log(response);
+
+        const data = await response.json();
+
+        console.log(data);
+
+        if (!response.ok) {
+            throw new Error(data.message);
+        }
+
+        items = data.files.map(file => ({
+            id: file.id,
+            name: file.original_name,
+            type: getFileType(file.original_name),
+            size: formatFileSize(file.file_size),
+            updatedAt: new Date(file.created_at).toLocaleDateString("id-ID"),
+        }));
+
+        renderItems(searchInput.value);
+    } catch (err) {
+
+        console.error(err);
+
+    }
+
+}
+
+async function loadProfile() {
+
+    try {
+
+        const response = await fetch(`${API_URL}/auth/me`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        console.log("STATUS:", response.status);
+
+        const data = await response.json();
+
+        console.log("DATA PROFILE:", data);
+
+        if (!response.ok) {
+            throw new Error(data.message);
+        }
+
+        userName.textContent = `Hi, ${data.user.name}`;
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+
+};
+
+console.log(response);
+const data = await response.json();
+console.log(data);
+
+    try {
+
+        const response = await fetch(`http://localhost:3000/api/profile`, {            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message);
+        }
+
+        userName.textContent = `Hi, ${data.user.name}`;
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+
+
+
+logoutButton.addEventListener("click", () => {
+
+    const confirmLogout = confirm("Yakin ingin logout?");
+
+    if (!confirmLogout) return;
+
+    localStorage.removeItem("token");
+
+    window.location.href = "login.html";
+
+});
+
+loadProfile();
+loadFiles();
+

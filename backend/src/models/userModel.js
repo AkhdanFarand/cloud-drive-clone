@@ -13,7 +13,7 @@ const User = {
       callback
     );
   },
-
+  
   findByEmail: (email, callback) => {
     const sql = `
       SELECT * FROM users
@@ -22,6 +22,14 @@ const User = {
 
     db.query(sql, [email], callback);
   },
+
+  findById(id, callback) {
+    db.query(
+        "SELECT id, name, email FROM users WHERE id = ?",
+        [id],
+        callback
+    );
+}
 };
 
 module.exports = User;
