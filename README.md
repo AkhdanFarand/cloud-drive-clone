@@ -123,8 +123,11 @@ Project saat ini dijalankan pada environment lokal menggunakan Docker Compose.
 # Anggota Tim
 
 | Akhdan Farand Namara | 2415323038 | Docker, Docker Compose, MinIO, Deployment Environment |
+
 | Alif Amrullah Hakiem | 2415323062 | Backend API & Database |
+
 | Gede Komang Tjhandra Wirawan | 2415323066 | Frontend Development |
+
 | Fajar Febrian Pamungkas | 2415323044 | Testing, Dokumentasi & Presentasi |
 
 ---
